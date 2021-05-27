@@ -126,6 +126,7 @@ mutate(year=year(date)) %>%
     facet_wrap(~year)+
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
       theme(panel.spacing = unit(1, "lines"))
+
 ```
 Generally speaking I think the summer months have more shoting incidents.  It is hard to distinguish between June, July and August
 
@@ -163,19 +164,19 @@ gun_violence %>%
 ## Type of guns
 
 ```{r}
+
+
 gun_violence %>% 
-  filter(!is.na(gun_type)) %>% 
-  group_by(gun_type) %>%
-  drop_na(gun_type) %>% 
-  summarise(n=n()) %>% 
-  flatten(gun_type)
-
-
-unlist(gun_violence$gun_type[1])
-
-gun_violence$gun_type %>% 
+        head(10) %>% 
+        drop_na(gun_type) %>% 
+        select(gun_type) %>% 
+        as.character() 
+        strsplit("\\|")
+    
+  
+  gun_violence$gun_type %>% 
   head(10)
-flatten_chr(gun_violence$gun_type[3])
+
 ```
 
 
