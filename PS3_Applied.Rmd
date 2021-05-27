@@ -51,6 +51,7 @@ incident_id
 date,state
 city_or_county
 address,n_killed
+
 n_injured
 incident_url
 source_url
