@@ -59,7 +59,7 @@ incident_url_fields_missing
 congressional_district
 gun_stolen
 gun_type
-incident_characteristics
+incident_characteristics - *this is very interesting as it gives a good overview over the incident.  It may be helpful to seperate this variable into more variables*
 latitude,location_description
 longitude,n_guns_involved,notes
 participant_age
@@ -88,7 +88,7 @@ head(gun_violence)
 
 ## Format
 
-We might have to format the participant variables, gun stolen, gun type, incident chracteristics.
+We might have to format the participant variables, gun stolen, gun type, incident chracteristics into factors
 
 
 # Time
@@ -98,7 +98,7 @@ We might have to format the participant variables, gun stolen, gun type, inciden
 gun_violence$date %>% 
   str()
 ```
-It is in the date format.
+It is aldready  in the date format.
 
 ## Increasing by year?
 
@@ -113,14 +113,22 @@ ggplot(aes(year, count)) +
 
 ## month
 
+
+
 ```{r}
 gun_violence %>% 
 mutate(month = month(date, label = TRUE)) %>% 
-  group_by(month) %>% 
+mutate(year=year(date)) %>% 
+  group_by(month,year) %>% 
   summarize(count = n()) %>% 
 ggplot(aes(month, count)) +
-  geom_bar(stat = "identity")
+  geom_bar(stat = "identity")+
+  facet_wrap(~year)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme(panel.spacing = unit(2, "lines"))
 ```
+generally speaking I think the summer months have more shoting incidents.  It is hard to distinguish between June, July and August
+
 
 ## Day
 
