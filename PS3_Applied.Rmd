@@ -155,7 +155,7 @@ More violence om weekends, more violence in the summer, and more violence over t
 ## Avg number guns
 ```{r}
 gun_violence %>% 
-  filter(n_guns_involved != is.na(n_guns_involved)) %>% 
+  filter(n_guns_involved != is.na(n_guns_involved)) 
   summarize(mean = mean(n_guns_involved))
 ```
 100,000 rows are missing this data, and of the ones that recorded, there 1.37 guns per incident.
@@ -163,7 +163,19 @@ gun_violence %>%
 ## Type of guns
 
 ```{r}
-gun_violence$gun_type
+gun_violence %>% 
+  filter(!is.na(gun_type)) %>% 
+  group_by(gun_type) %>%
+  drop_na(gun_type) %>% 
+  summarise(n=n()) %>% 
+  flatten(gun_type)
+
+
+unlist(gun_violence$gun_type[1])
+
+gun_violence$gun_type %>% 
+  head(10)
+flatten_chr(gun_violence$gun_type[3])
 ```
 
 
