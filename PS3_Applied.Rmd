@@ -121,24 +121,28 @@ mutate(month = month(date, label = TRUE)) %>%
 mutate(year=year(date)) %>% 
   group_by(month,year) %>% 
   summarize(count = n()) %>% 
-ggplot(aes(month, count)) +
-  geom_bar(stat = "identity")+
-  facet_wrap(~year)+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  theme(panel.spacing = unit(2, "lines"))
+  ggplot(aes(month, count)) +
+    geom_bar(stat = "identity")+
+    facet_wrap(~year)+
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+      theme(panel.spacing = unit(1, "lines"))
 ```
-generally speaking I think the summer months have more shoting incidents.  It is hard to distinguish between June, July and August
+Generally speaking I think the summer months have more shoting incidents.  It is hard to distinguish between June, July and August
 
 
 ## Day
 
 ```{r}
 gun_violence %>% 
-mutate(wday = wday(date, label = TRUE)) %>% 
-  group_by(wday) %>% 
+  mutate(wday = wday(date, label = TRUE)) %>% 
+  mutate(year=year(date)) %>%
+  group_by(wday, year) %>% 
   summarize(count = n()) %>% 
-ggplot(aes(wday, count)) +
-  geom_bar(stat = "identity")
+  ggplot(aes(wday, count)) +
+    geom_bar(stat = "identity")+
+    facet_wrap(~year)+
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+      theme(panel.spacing = unit(1, "lines"))
 ```
 
 ## Summary
@@ -159,7 +163,7 @@ gun_violence %>%
 ## Type of guns
 
 ```{r}
-gun_violence$gun_type %>% 
+gun_violence$gun_type
 ```
 
 
