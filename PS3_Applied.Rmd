@@ -22,6 +22,8 @@ knitr::opts_chunk$set(fig.height = 3, fig.width = 5)
 
 
 ```{r message=FALSE, warning=FALSE, include = FALSE}
+library(stringi)
+library(splitstackshape)
 library(tidyverse)
 library(testthat)
 library(pryr)
@@ -143,7 +145,8 @@ gun_violence %>%
     geom_bar(stat = "identity")+
     facet_wrap(~year)+
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-      theme(panel.spacing = unit(1, "lines"))
+      theme(panel.spacing = unit(1, "lines"))+
+  labs(x='Weekday', y='Number of incidents', title='Incidents by Weekday')
 ```
 
 ## Summary
@@ -162,21 +165,38 @@ gun_violence %>%
 100,000 rows are missing this data, and of the ones that recorded, there 1.37 guns per incident.
 
 ## Type of guns
+Incredibly complicated but got there in the end- the graph needs to be be labelled etc
 
 ```{r}
 
 
-gun_violence %>% 
-        head(10) %>% 
-        drop_na(gun_type) %>% 
-        select(gun_type) %>% 
-        as.character() 
-        strsplit("\\|")
     
   
-  gun_violence$gun_type %>% 
-  head(10)
+gun_violence$gun_type <- gsub("\\|\\|", "|", gun_violence$gun_type)
 
+gun_type_columnized <- splitstackshape::cSplit(gun_violence %>% select( gun_type), 'gun_type', sep =  '|', direction="long")
+
+gun_type_columnized
+
+
+
+gun_types_cleaned<- gun_type_columnized %>% 
+  drop_na() %>% 
+  filter(str_detect(gun_type,"Unknown", negate = TRUE)) %>%  
+  mutate(gun=stri_sub(gun_type,4))
+
+gun_types_cleaned
+
+gun_types_cleaned %>%
+  group_by(gun) %>% 
+  summarise(count=n()) %>% 
+  ggplot(aes(x=gun, count))+
+  geom_histogram(stat="identity")+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+
+    
 ```
 
 
@@ -197,16 +217,24 @@ fct_lump((n = 20))
 
 # suspects characterisitics
 
+got help from https://www.kaggle.com/erikbruin/gun-violence-in-the-us-eda-and-rshiny-app
+
+
 ```{r}
 
-gun_violence$participant_age %>% 
-  head()
-gun_violence$participant_gender %>% 
-  head()
-gun_violence$participant_type %>% 
-  head()
-gun_violence$participant_status %>% 
-  head()
+
+gun_violence$incident_characteristics <- gsub("\\|\\|", "|", gun_violence$incident_characteristics)
+
+IncCharac <- splitstackshape::cSplit(gun_violence %>% select(incident_id, state, city_or_county, incident_characteristics), 'incident_characteristics', sep =  '|', direction="long")
+
+
+
+numCat <- round(nrow(IncCharac)/nrow(gun_violence),1)
+cat('On average, there are', numCat, 'incident categories specified per incident')
+
+IncCharac %>% 
+  head(10)
+
 ```
 ## Avg number suspects and victims
 ```{r}
