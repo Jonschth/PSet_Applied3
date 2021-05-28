@@ -204,6 +204,8 @@ gun_types_cleaned %>%
 
 ##incident characteristics
 
+got help from https://www.kaggle.com/erikbruin/gun-violence-in-the-us-eda-and-rshiny-app
+
 ```{r}
 
 
@@ -226,7 +228,7 @@ IncCharac %>%
   filter(count>6300) %>% 
   ggplot(aes(x=incident_characteristics, count))+
   geom_histogram(stat="identity")+
-  theme(axis.text.x = element_text(angle = 30, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 55, vjust = 0.5, hjust=1))
 
 
 ```
@@ -234,14 +236,50 @@ IncCharac %>%
 
 # suspects characterisitics
 
-got help from https://www.kaggle.com/erikbruin/gun-violence-in-the-us-eda-and-rshiny-app
 
-
+By way of example let us look at the first row.
+In the age group there are 5 individuals, in the gender group there are four etc.  It can be hard to reconcile the individuals
 
 ## Avg number suspects and victims
 ```{r}
-
+gun_violence %>% 
+  select(participant_age,participant_age_group,participant_gender,participant_name, participant_status,participant_type) %>% 
+  head(1)
 ```
+
+```{r,fig.width=10}
+
+
+gun_filter= gun_violence %>% 
+  mutate(year=year(date)) %>% 
+  filter(year=='2017')
+
+type=cSplit(gun_filter,c("participant_status"),sep="||",direction="long",drop=TRUE)
+
+
+type
+
+type$participant_status=gsub(".*:","",type$participant_status)
+
+
+
+
+head(type$participant_status)
+
+total=length(unique(type$incident_id))
+temp = type %>% group_by(participant_status) %>% summarise(count=n()) %>% mutate(perc=round((count/total)*100,2)) %>% arrange(desc(count))
+
+
+ggplot(temp,aes(factor(participant_status,participant_status),count,fill=participant_status))+geom_bar(stat="identity")+geom_text(aes(label=paste0(perc,"%",sep=" ")),hjust=0,vjust=0.5,size=4,color='black',fontface='bold')+labs(x="Participant Status",y="Count",title='Year:2017 - Participant Status')+coord_flip()
+```
+
+
+
+
+
+4.2 average of suspects and victims per incident
+We choose to use the participant type and to chop it up to find the numer of participants
+
 
 
 
