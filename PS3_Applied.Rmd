@@ -314,11 +314,10 @@ type=cSplit(Gender_participation,c("participant_type"),sep="||",direction="long"
 type
 
 type %>% 
-  head(10) %>% 
-  factor(participant_type)
+  head(100) %>% 
+  filter(str_detect(participant_type, "Subject-Suspect", negate=FALSE))
 
-
-Gender_participation
+type
 
 
   
