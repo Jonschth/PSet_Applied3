@@ -30,6 +30,7 @@ library(pryr)
 library(lubridate)
 library(ggplot2)
 library(tidycensus)
+library(leaflet)
 ```
 
 This submission is our work alone and complies with the 30535 integrity policy.
@@ -337,21 +338,98 @@ participant_status_columned <- splitstackshape::cSplit(gun_violence %>% select(i
 
 
 ```{r}
-statesPop <- read_csv(str_c(path2, "PopulationUS.csv"))
+gun_violence_dates <- gun_violence %>% 
+mutate(year = year(date),
+       month = month(date, label = TRUE),
+       wday = wday(date, label = TRUE))
 
-statesPop <- statesPop %>% select(NAME, POPESTIMATE2017)
-statesPop <- statesPop %>% filter(!NAME %in% c("United States", "Puerto Rico Commonwealth"))
-statesPop <- statesPop %>% rename(state= NAME)
-statesPop$state <- as.factor(statesPop$state)
+CENSUS_KEY <- Sys.getenv("7b144a5d849b2f47475f9c1e44514c692f0246d0")
+
+acs_data <- get_acs(
+  geography = "state",
+  variables = c("B01003_001"),
+year = 2017
+) %>% 
+  arrange(NAME)
+
+acs_data <- acs_data %>% 
+  rename("state" = NAME,
+         "population_est" = estimate)
+	
+gun_merged <- gun_violence_dates %>% 
+  left_join(acs_data, by = "state")
 
 
-incidentsByState <- gun_violence %>% group_by(state) %>% summarize(stateIncidents=n())
-incidentsByState <-left_join(incidentsByState, statesPop, by="state")
-incidentsByState$Per100000 <- round((incidentsByState$stateIncidents/incidentsByState$POPESTIMATE2017)*100000)
+gun_merged %>% 
+  filter(year == 2017) %>% 
+  group_by(state) %>% 
+  summarize(count = n(),
+            per_100 = (count/population_est)) %>% 
+  ggplot(aes(reorder(state, per_100), per_100)) +
+  geom_bar(stat = "identity", fill = "red") +
+  labs(x = "State", y = "Number of Incidents", title = "States") +
+  coord_flip()
+
+
+
+
 
 
 ```
 
+##results in a map
+## Incidents with highest numbers of victims
 
+
+
+```{r}
+
+install.packages("leaflet")
+
+
+gun_violence$victims <- gun_violence$n_killed + gun_violence$n_injured
+
+Top15 <- gun_violence %>% 
+  select(incident_id, date, n_killed, n_injured, victims, location_description, city_or_county, state, latitude, longitude) %>%
+  rename(Incident_Id=incident_id, Date=date, Killed=n_killed, Injured=n_injured, Victims=victims, Location=location_description, City=city_or_county) %>%
+  arrange(desc(Victims)) %>% 
+  top_n(n=15, wt=Victims)
+
+Top15
+
+TopMap <- Top15 %>% select(latitude, longitude, Victims, City, Location)
+
+labels <- paste0("<strong>City: </strong>", TopMap$City, 
+                 "<br><strong>Location: </strong>", TopMap$Location,
+                 "<br><strong>Victims </strong>", TopMap$Victims) %>%    lapply(htmltools::HTML)
+
+leaflet(TopMap) %>%
+        setView(lng=-96, lat=37.8, zoom=4) %>%
+        addTiles() %>%
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircleMarkers(~longitude, ~latitude, color = "red", radius=~sqrt(Victims), label = labels)
+
+
+
+```
+
+```{r}
+kable(Top10 %>% select(-longitude, -latitude))
+```
+
+### An interactive map of the incidents with highest numbers of victims
+
+```{r, out.width="100%"}
+TopMap <- Top10 %>% select(latitude, longitude, Victims, City, Location)
+
+labels <- paste0("<strong>City: </strong>", TopMap$City, 
+                 "<br><strong>Location: </strong>", TopMap$Location,
+                 "<br><strong>Victims </strong>", TopMap$Victims) %>% lapply(htmltools::HTML)
+
+leaflet(TopMap) %>%
+        setView(lng=-96, lat=37.8, zoom=4) %>%
+        addTiles() %>%
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircleMarkers(~longitude, ~latitude, color = "red", radius=~sqrt(Victims), label = labels)
 
 # mass shootings
