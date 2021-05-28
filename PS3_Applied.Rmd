@@ -317,7 +317,7 @@ type=cSplit(type,c("participant_age"),sep="||",direction="long",drop=TRUE)
 type
 
 type<-type %>% 
-  head(100) %>% 
+  head(10000) %>% 
   filter(str_detect(participant_type, "Subject-Suspect", negate=FALSE)) #picking only suspect
 type
 
