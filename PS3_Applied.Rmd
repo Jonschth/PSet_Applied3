@@ -280,7 +280,23 @@ ggplot(temp,aes(factor(participant_status,participant_status),count,fill=partici
 4.2 average of suspects and victims per incident
 We choose to use the participant type and to chop it up to find the numer of participants
 
+```{r}
+gun_violence$participant_status <- gsub("\\|\\|", "|", gun_violence$participant_status)
 
+gun_violence$participant_status
+
+participant_status_columned <- splitstackshape::cSplit(gun_violence %>% select(incident_id,participant_status), 'participant_status', sep =  '|', direction="long")
+
+
+participant_status_columned %>% 
+  group_by(incident_id) %>% 
+  summarise(count=n()) %>% 
+  summarise(mean=mean(count))
+
+
+
+```
+the mean number of victims and suspects is 1.7 which must mean that sometimes there is just a victim and no suspect
 
 
 #geographic variation
