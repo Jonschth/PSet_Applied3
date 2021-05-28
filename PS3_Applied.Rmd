@@ -299,6 +299,42 @@ participant_status_columned %>%
 the mean number of victims and suspects is 1.7 which must mean that sometimes there is just a victim and no suspect
 
 
+
+4.3 Group by id, participant_gender and participant_age
+
+
+
+```{r}
+Gender_participation <- gun_violence %>% 
+  select(incident_id, participant_type, participant_age,participant_gender)
+
+
+type=cSplit(Gender_participation,c("participant_type"),sep="||",direction="long",drop=TRUE)
+
+type
+
+type %>% 
+  head(10) %>% 
+  factor(participant_type)
+
+
+Gender_participation
+
+
+  
+
+gun_violence$participant_status <- gsub("\\|\\|", "|", gun_violence$participant_status)
+
+gun_violence$participant_status
+
+participant_status_columned <- splitstackshape::cSplit(gun_violence %>% select(incident_id,participant_status), 'participant_status', sep =  '|', direction="long")
+
+
+
+```
+
+
 #geographic variation
+
 
 # mass shootings
