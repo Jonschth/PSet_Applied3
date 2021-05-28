@@ -397,9 +397,9 @@ Top15 <- gun_violence %>%
 
 Top15
 
-TopMap <- Top15 %>% select(latitude, longitude, Victims, City, Location)
+TopMap <- Top15 %>% select(latitude, longitude, Victims, state, Location)
 
-labels <- paste0("<strong>City: </strong>", TopMap$City, 
+labels <- paste0("<strong>State: </strong>", TopMap$state, 
                  "<br><strong>Location: </strong>", TopMap$Location,
                  "<br><strong>Victims </strong>", TopMap$Victims) %>%    lapply(htmltools::HTML)
 
