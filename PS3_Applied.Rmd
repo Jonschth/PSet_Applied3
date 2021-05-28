@@ -190,6 +190,8 @@ gun_types_cleaned
 gun_types_cleaned %>%
   group_by(gun) %>% 
   summarise(count=n()) %>% 
+  arrange(desc(count) ) %>% 
+  filter(count>=196) %>% 
   ggplot(aes(x=gun, count))+
   geom_histogram(stat="identity")+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
@@ -201,24 +203,6 @@ gun_types_cleaned %>%
 
 
 ##incident characteristics
-
-```{r}
-gun_violence$incident_characteristics %>% 
-  head()
-```
-Incident characteristics are telling us what happened during the shooting and what kind of crime it was (mass shooting/)
-
-## most common
-```{r}
-fct_lump((n = 20))
-```
-
-
-
-# suspects characterisitics
-
-got help from https://www.kaggle.com/erikbruin/gun-violence-in-the-us-eda-and-rshiny-app
-
 
 ```{r}
 
@@ -235,7 +219,25 @@ cat('On average, there are', numCat, 'incident categories specified per incident
 IncCharac %>% 
   head(10)
 
+IncCharac %>% 
+  group_by(incident_characteristics) %>% 
+  summarise(count=n()) %>% 
+  arrange(desc(count) ) %>% 
+  filter(count>6300) %>% 
+  ggplot(aes(x=incident_characteristics, count))+
+  geom_histogram(stat="identity")+
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.5, hjust=1))
+
+
 ```
+
+
+# suspects characterisitics
+
+got help from https://www.kaggle.com/erikbruin/gun-violence-in-the-us-eda-and-rshiny-app
+
+
+
 ## Avg number suspects and victims
 ```{r}
 
