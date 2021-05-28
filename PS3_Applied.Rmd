@@ -333,7 +333,25 @@ participant_status_columned <- splitstackshape::cSplit(gun_violence %>% select(i
 ```
 
 
-#geographic variation
+#6. geographic variation
+
+
+```{r}
+statesPop <- read_csv(str_c(path2, "PopulationUS.csv"))
+
+statesPop <- statesPop %>% select(NAME, POPESTIMATE2017)
+statesPop <- statesPop %>% filter(!NAME %in% c("United States", "Puerto Rico Commonwealth"))
+statesPop <- statesPop %>% rename(state= NAME)
+statesPop$state <- as.factor(statesPop$state)
+
+
+incidentsByState <- gun_violence %>% group_by(state) %>% summarize(stateIncidents=n())
+incidentsByState <-left_join(incidentsByState, statesPop, by="state")
+incidentsByState$Per100000 <- round((incidentsByState$stateIncidents/incidentsByState$POPESTIMATE2017)*100000)
+
+
+```
+
 
 
 # mass shootings
