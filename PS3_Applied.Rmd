@@ -301,7 +301,7 @@ the mean number of victims and suspects is 1.7 which must mean that sometimes th
 
 
 
-4.3 Group by id, participant_gender and participant_age
+4.3 Group by id, participant_gender and participant_age 
 
 
 
@@ -311,27 +311,36 @@ Gender_participation <- gun_violence %>%
 
 
 type=cSplit(Gender_participation,c("participant_type"),sep="||",direction="long",drop=TRUE)
+type=cSplit(type,c("participant_age"),sep="||",direction="long",drop=TRUE)
 
 type
 
-type %>% 
+type<-type %>% 
   head(100) %>% 
-  filter(str_detect(participant_type, "Subject-Suspect", negate=FALSE))
-
+  filter(str_detect(participant_type, "Subject-Suspect", negate=FALSE)) #picking only suspect
 type
 
+type<-type %>% 
+  filter(substr(participant_type, 1, 3)==substr(participant_age,1,3))  # chose rows were the number of suspect and age match
 
-  
+type<-type %>% 
+  mutate(suspect_age=as.numeric(substr(participant_age,4,5))) # put suspect age into a separate column
+ 
+type
 
-gun_violence$participant_status <- gsub("\\|\\|", "|", gun_violence$participant_status)
-
-gun_violence$participant_status
-
-participant_status_columned <- splitstackshape::cSplit(gun_violence %>% select(incident_id,participant_status), 'participant_status', sep =  '|', direction="long")
 
 
 
 ```
+4.4 show age distribution  - this graph needs labels etc.
+
+```{r}
+type %>% 
+  filter(suspect_age<100) %>% 
+  ggplot(aes(suspect_age))+
+  geom_bar()
+```
+
 
 
 #6. geographic variation
@@ -343,7 +352,8 @@ mutate(year = year(date),
        month = month(date, label = TRUE),
        wday = wday(date, label = TRUE))
 
-CENSUS_KEY <- Sys.getenv("7b144a5d849b2f47475f9c1e44514c692f0246d0")
+
+census_api_key("7b144a5d849b2f47475f9c1e44514c692f0246d0")
 
 acs_data <- get_acs(
   geography = "state",
@@ -375,19 +385,57 @@ gun_merged %>%
 
 
 
+
 ```
 
 ##results in a map
+
+THIS IS NOT FINISHED AND IS unlikely to be
+
+
+```{r}
+
+
+top_map<- gun_merged %>% 
+  filter(year == 2017) %>% 
+  group_by(state,longitude,latitude) %>% 
+  drop_na(longitude) %>% 
+  summarize(count = n(),
+    per_100 = (count/population_est)) %>% 
+  arrange(desc(per_100)) 
+
+top_map<-top_map[!duplicated(top_map$state), ]
+
+ 
+top_map
+
+
+
+labels <- paste0("<strong>State: </strong>", top_map$state, 
+                 "<br><strong>Victims </strong>", top_map$per_100) %>%    lapply(htmltools::HTML)
+
+leaflet(top_map) %>%
+        setView(lng=-96, lat=37.8, zoom=4) %>%
+        addTiles() %>%
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircleMarkers(~longitude, ~latitude, color = "red", radius=~sqrt(top_map), label = labels)
+
+```
+
+
+
+
+
 ## Incidents with highest numbers of victims
+We used bits from https://www.kaggle.com/erikbruin/gun-violence-in-the-us-eda-and-rshiny-app
 
 
 
 ```{r}
 
-install.packages("leaflet")
 
 
-gun_violence$victims <- gun_violence$n_killed + gun_violence$n_injured
+gun_violence$victims <- gun_violence$n_killed + gun_violence$n_injured # new variable created
 
 Top15 <- gun_violence %>% 
   select(incident_id, date, n_killed, n_injured, victims, location_description, city_or_county, state, latitude, longitude) %>%
