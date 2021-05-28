@@ -377,6 +377,18 @@ type %>%
 ```
 Out of the 1000 incidents we picked the there are 519 suspects.  Male are 499/519 = 96%. 
 
+4.6. participant statuses
+
+```{r}
+c_participants<- gun_violence%>%   select(participant_status) %>% 
+  cSplit(c("participant_status"),sep="|",direction="long",drop=TRUE) %>% 
+  mutate(clean_status=substr(participant_status,4,50)) 
+
+length(unique(c_participants$clean_status))
+
+
+```
+The number of statuses is 28
 
 
 #6. geographic variation
